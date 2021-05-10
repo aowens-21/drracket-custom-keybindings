@@ -1,0 +1,18 @@
+doc/
+*.rkt~
+*.bak
+# Compiled racket bytecode
+compiled/
+*.zo
+*.dep
+.DS_Store
+
+
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
