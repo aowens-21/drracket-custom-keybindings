@@ -2,10 +2,11 @@
 
 (require drracket/tool
          racket/class
-         racket/gui/base
          racket/unit
          racket/runtime-path
-         mrlib/switchable-button)
+         racket/vector
+         "monitor.rkt")
+
 (provide tool@)
 
 (define-runtime-path monitor.rkt "monitor.rkt")
@@ -22,4 +23,6 @@
      monitor.rkt
      'handle
      (λ (defs-text val)
-       (printf "~s\n" (send defs-text get-text 0 (send defs-text last-position)))))))
+       (printf "~s\n" val)
+       (for ([(k v) (in-hash val)])
+         (printf "prog: ~s\n" (lookup-kb (vector-ref v 0))))))))

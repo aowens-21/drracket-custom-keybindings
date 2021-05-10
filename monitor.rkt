@@ -29,9 +29,7 @@
        (loop)))))
 
 (define (handle expanded path the-source orig-cust)
-  (printf "handle called\n")
   (unless (exn? expanded)
-    (printf "no exn\n")
     (define kb-hash (make-hash))
     (let loop ([s expanded])
       (cond [(syntax? s)
@@ -41,7 +39,6 @@
             [(pair? s)
              (loop (car s))
              (loop (cdr s))]))
-    (printf "~s\n" kb-hash)
     kb-hash))
 
 (define (extract-kb-info-prop kbs prop)
@@ -49,7 +46,7 @@
   (define program (vector-ref prop 1))
   (define name (vector-ref prop 2))
   (define active-range (vector-ref prop 3))
-  (hash-set! kbs keystroke (vector (lambda () program) name active-range)))
+  (hash-set! kbs keystroke (vector program name active-range)))
 
 (define (look-for-kb-props stx)
   (printf "got called\n")
