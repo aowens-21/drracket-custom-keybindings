@@ -1,18 +1,14 @@
 #lang racket/base
 
-(require racket/match)
-
-(provide base-val?
+(provide (struct-out kb-expr)
+         (struct-out buffer-safe-kb-expr)
+         base-val?
          step-type?
          is-kb-expr?
-         is-buffer-safe-kb-expr?
-         (except-out (struct-out kb-expr)
-                     kb-expr?)
-         (except-out (struct-out buffer-safe-kb-expr)
-                     buffer-safe-kb-expr?))
+         is-buffer-safe-kb-expr?)
 
-(struct kb-expr (inner-expr))
-(struct buffer-safe-kb-expr kb-expr ())
+(struct kb-expr (inner-expr) #:transparent)
+(struct buffer-safe-kb-expr kb-expr () #:transparent)
 
 (define (base-val? e)
   (or (number? e)

@@ -1,7 +1,7 @@
 #lang racket/base
 
 (require racket/contract
-         "op-predicates.rkt")
+         "kb-expr.rkt")
 
 (require (for-syntax syntax/parse
                      racket/syntax
@@ -50,6 +50,12 @@
               (checked-args ...))
         body)
      (with-syntax ([name-id (format-id #'name "~a" (syntax-e #'name))]
+                   [(unchecked-ids ...) (map (lambda (arg)
+                                               (syntax-parse arg
+                                                 [(uncheck-id uncheck-val)
+                                                  #'uncheck-id]
+                                                 [uncheck-id #'uncheck-id]))
+                                             (syntax->list #'(unchecked-args ...)))]
                    [(checked-ids ...) (map (lambda (arg)
                                              (syntax-parse arg
                                                [(check-id check-val)
@@ -63,17 +69,43 @@
                                 (step-type? expr)
                                 (symbol? expr)))
                           (list checked-ids ...))
-                  (buffer-safe-kb-expr body)]
+                  (let ([unchecked-ids (if (kb-expr? unchecked-ids)
+                                           (kb-expr-inner-expr unchecked-ids)
+                                           unchecked-ids)]
+                        ...
+                        [checked-ids (if (kb-expr? checked-ids)
+                                         (kb-expr-inner-expr checked-ids)
+                                         checked-ids)]
+                        ...)
+                    (buffer-safe-kb-expr body))]
                  [else
-                  (kb-expr body)])))]
+                  (let ([unchecked-ids (if (kb-expr? unchecked-ids)
+                                           (kb-expr-inner-expr unchecked-ids)
+                                           unchecked-ids)]
+                        ...
+                        [checked-ids (if (kb-expr? checked-ids)
+                                         (kb-expr-inner-expr checked-ids)
+                                         checked-ids)]
+                        ...)
+                    (kb-expr body))])))]
     ;; Generating a define but won't check its arguments,
     ;; determines if an op should produce safe based on #:safe?
     [(_ (name args ...) (~optional (~seq #:safe? v)) body)
-     (with-syntax ([name-id (format-id #'name "~a" (syntax-e #'name))])
+     (with-syntax ([name-id (format-id #'name "~a" (syntax-e #'name))]
+                   [(arg-ids ...) (map (lambda (arg)
+                                         (syntax-parse arg
+                                           [(check-id check-val)
+                                            #'check-id]
+                                           [check-id #'check-id]))
+                                       (syntax->list #'(args ...)))])
        #'(define (name-id args ...)
-           (if (~? v #f)
-               (buffer-safe-kb-expr body)
-               (kb-expr body))))]))
+           (let ([arg-ids (if (kb-expr? arg-ids)
+                              (kb-expr-inner-expr arg-ids)
+                              arg-ids)]
+                 ...)
+             (if (~? v #f)
+                 (buffer-safe-kb-expr body)
+                 (kb-expr body)))))]))
 
 (define-syntax (seq stx)
   (syntax-parse stx

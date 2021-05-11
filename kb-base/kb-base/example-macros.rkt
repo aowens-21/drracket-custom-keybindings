@@ -37,6 +37,6 @@
                        (+ 1 (syntax-position stx))
                        (syntax-span stx))))
 
-(my-cond [(> 1 0) #t]
-         [(< 1 0) #f]
+(my-cond [(< 1 0) #f]
+         [(> 1 0) #t]
          [(= 1 0) "umm..."])
