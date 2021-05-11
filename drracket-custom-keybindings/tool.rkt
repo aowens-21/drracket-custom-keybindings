@@ -26,8 +26,10 @@
             add-function
             (vector-ref vec 1)
             (λ (d e)
+              (send editor begin-edit-sequence)
               (run-kb-program (vector-ref vec 0)
-                              editor)))
+                              editor)
+              (send editor end-edit-sequence)))
       (send kb-keymap
             map-function
             stroke
@@ -37,6 +39,7 @@
      monitor.rkt
      'handle
      (λ (defs-text val)
+       (printf "~s\n" val)
        (for ([(k v) (in-hash val)])
          (register-to-keymap k v defs-text)
          (send (drracket:rep:get-drs-bindings-keymap) remove-chained-keymap kb-keymap)

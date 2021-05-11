@@ -1,11 +1,13 @@
 #lang racket/base
 
-(require (for-syntax syntax/parse
-                     racket/base))
+(require plai)
 
 (require (for-syntax "../../tests/kb-base/example-keybindings/plai.rkt"
                      "../../tests/kb-base/example-keybindings/contracts.rkt"
-                     "../../tests/kb-base/example-keybindings/misc-racket.rkt"))
+                     "../../tests/kb-base/example-keybindings/misc-racket.rkt"
+                     syntax/parse
+                     racket/base
+                     racket/list))
 
 (define-syntax (my-cond stx)
   (syntax-property             
@@ -26,6 +28,22 @@
             'local
             stx)))
 
+(define-syntax (my-define-type stx)
+   (syntax-parse stx
+     [(_ type-name
+         [var-name (field-name field-c) field-clause ...]
+         ...)
+      (define first-var-pos (syntax-position (second (syntax->list stx))))
+      (syntax-property
+       #'(define-type type-name [var-name (field-name field-c) field-clause ...] ...)
+       'keybinding-info
+       (make-kb "c:space"
+                (gen-type-case (symbol->string (syntax-e #'type-name))
+                               first-var-pos)
+                "generate-type-case"
+                'global
+                stx))]))
+
 (define-for-syntax (make-kb keystroke kb-base-program name-prefix range stx)
   (vector keystroke
           kb-base-program
@@ -37,6 +55,12 @@
                        (+ 1 (syntax-position stx))
                        (syntax-span stx))))
 
-(my-cond [(< 1 0) #f]
+#;(my-cond [(< 1 0) (my-cond [#t 10]
+                           [#f 5])]
          [(> 1 0) #t]
          [(= 1 0) "umm..."])
+
+(my-define-type Shape
+                [circle (r number?)]
+                [rect (l number?)
+                      (w number?)])
