@@ -22,10 +22,10 @@
             (begin a-expr ...)
             (my-cond c-clause ...))])
    'keybinding-info
-   (make-kb "c:space"
+   (make-kb "c:b"
             swap-cond-branches
             "cond-kb"
-            'local
+            'global
             stx)))
 
 (define-syntax (my-define-type stx)
@@ -55,9 +55,9 @@
                        (+ 1 (syntax-position stx))
                        (syntax-span stx))))
 
-#;(my-cond [(< 1 0) (my-cond [#t 10]
-                           [#f 5])]
-         [(> 1 0) #t]
+(my-cond [(< 1 0) #f]
+         [(> 1 0) (my-cond [#t #t]
+                           [#f #f])]
          [(= 1 0) "umm..."])
 
 (my-define-type Shape
