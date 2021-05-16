@@ -5,6 +5,7 @@
          racket/unit
          racket/runtime-path
          racket/vector
+         racket/list
          framework
          "../kb-base/kb-base/interpreter.rkt")
 
@@ -22,15 +23,11 @@
 
     (define kb-keymap (new keymap:aug-keymap%))
     (define (register-to-keymap stroke kbs/kb-vec editor)
-      (cond [(pair? kbs/kb-vec)
-             (define global-kb (let loop ([kbs kbs/kb-vec])
-                                 (cond [(null? kbs)
-                                        #f]
-                                       [(equal? 'global
-                                                (vector-ref (car kbs) 3))
-                                        (car kbs)]
-                                       [else
-                                        (loop (cdr kbs))])))
+      (cond [(list? kbs/kb-vec)
+             ;; if there is a global-kb register it, it dominates any local kb's with the same keystroke
+             (define global-kb (findf (λ (kb-vec)
+                                        (equal? 'global (vector-ref kb-vec 3)))
+                                      kbs/kb-vec))
              (cond [global-kb
                     (send kb-keymap
                           add-function
@@ -44,7 +41,28 @@
                           map-function
                           stroke
                           (vector-ref global-kb 2))]
-                   [else (error 'drracket-custom-keybindings "Unimplemented 'local kb range")])]
+                   [else
+                    (define f-name (vector-ref (first kbs/kb-vec) 2))
+                    (send kb-keymap
+                          add-function
+                          f-name
+                          (λ (d e)
+                            (define kb-prog #f)
+                            (define current-pos (send editor get-end-position))
+                            (for ([kb (in-list kbs/kb-vec)]
+                                  #:break kb-prog)
+                              (define start-kb (car (vector-ref kb 3)))
+                              (define end-kb (cdr (vector-ref kb 3)))
+                              (when (and (>= current-pos start-kb)
+                                         (<= current-pos end-kb))
+                                (set! kb-prog (vector-ref kb 1))))
+                            (send editor begin-edit-sequence)
+                            (run-kb-program kb-prog editor)
+                            (send editor end-edit-sequence)))
+                    (send kb-keymap
+                          map-function
+                          stroke
+                          f-name)])]
             [(vector? kbs/kb-vec)
              (send kb-keymap
                    add-function

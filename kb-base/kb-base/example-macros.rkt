@@ -25,7 +25,7 @@
    (make-kb "c:b"
             swap-cond-branches
             "cond-kb"
-            'global
+            'local
             stx)))
 
 (define-syntax (my-define-type stx)
@@ -33,7 +33,7 @@
      [(_ type-name
          [var-name (field-name field-c) field-clause ...]
          ...)
-      (define first-var-pos (syntax-position (second (syntax->list stx))))
+      (define first-var-pos (- (syntax-position (third (syntax->list stx))) 1))
       (syntax-property
        #'(define-type type-name [var-name (field-name field-c) field-clause ...] ...)
        'keybinding-info
@@ -47,6 +47,7 @@
 (define-for-syntax (make-kb keystroke kb-base-program name-prefix range stx)
   (vector keystroke
           kb-base-program
+          ;; TODO: Fix gensym code here, needs to stay a symbol so just give the name as a base
           (string-append name-prefix "-" (symbol->string (gensym)))
           range
           (make-srcloc (syntax-source stx)
@@ -55,9 +56,9 @@
                        (+ 1 (syntax-position stx))
                        (syntax-span stx))))
 
-(my-cond [(< 1 0) #f]
-         [(> 1 0) (my-cond [#t #t]
+(my-cond [(> 1 0) (my-cond [#t #t]
                            [#f #f])]
+         [(< 1 0) #f]
          [(= 1 0) "umm..."])
 
 (my-define-type Shape
