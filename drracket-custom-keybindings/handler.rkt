@@ -51,8 +51,8 @@
        (string? (vector-ref kb 0))
        #t ;; TODO: check for the struct type
        (string? (vector-ref kb 2))
-       (or (symbol? vector-ref kb 3)
-           (pair? vector-ref kb 3))
+       (or (symbol? (vector-ref kb 3))
+           (pair? (vector-ref kb 3)))
        (srcloc? (vector-ref kb 4))))
 
 (define (extract-kb kb-table registered-kb-names stx)

@@ -5,6 +5,7 @@
 (require (for-syntax "../../tests/kb-base/example-keybindings/plai.rkt"
                      "../../tests/kb-base/example-keybindings/contracts.rkt"
                      "../../tests/kb-base/example-keybindings/misc-racket.rkt"
+                     "../../kb-base/kb-base/helpers.rkt"
                      syntax/parse
                      racket/base
                      racket/list))
@@ -28,6 +29,11 @@
             'local
             stx)))
 
+(my-cond [(= 1 0) "umm..."]
+         [(> 1 0) (my-cond [#f #f]
+                           [#t #t])]
+         [(< 1 0) #f])
+
 (define-syntax (my-define-type stx)
    (syntax-parse stx
      [(_ type-name
@@ -43,23 +49,6 @@
                 "generate-type-case"
                 'global
                 stx))]))
-
-(define-for-syntax (make-kb keystroke kb-base-program name-prefix range stx)
-  (vector keystroke
-          kb-base-program
-          ;; TODO: Fix gensym code here, needs to stay a symbol so just give the name as a base
-          (string-append name-prefix "-" (symbol->string (gensym)))
-          range
-          (make-srcloc (syntax-source stx)
-                       (syntax-line stx)
-                       (+ 1 (syntax-column stx))
-                       (+ 1 (syntax-position stx))
-                       (syntax-span stx))))
-
-(my-cond [(> 1 0) (my-cond [#t #t]
-                           [#f #f])]
-         [(< 1 0) #f]
-         [(= 1 0) "umm..."])
 
 (my-define-type Shape
                 [circle (r number?)]
