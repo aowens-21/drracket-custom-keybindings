@@ -30,7 +30,10 @@
                        [get-text (-> is-kb-expr? is-kb-expr? is-kb-expr?)]
                        [count-iters (-> is-buffer-safe-kb-expr? is-kb-expr? step-type? is-kb-expr?)]
                        [kb-set! (-> symbol? is-kb-expr? is-kb-expr?)]
-                       [kb-if (-> is-kb-expr? is-kb-expr? is-kb-expr? is-kb-expr?)]
+                       [kb-if (->* (is-kb-expr?
+                                    is-kb-expr?)
+                                   ((or/c #f is-kb-expr?))
+                                   is-kb-expr?)]
                        [sub (-> is-kb-expr? is-kb-expr? is-kb-expr?)]
                        [add (-> is-kb-expr? is-kb-expr? is-kb-expr?)]
                        [seek-while (-> is-buffer-safe-kb-expr? is-kb-expr? step-type? is-kb-expr?)]
@@ -197,7 +200,7 @@
 (define-kb-op (kb-set! (name) (new-val))
   `(kb-set! ,name ,new-val))
 
-(define-kb-op (kb-if () (condition thn els))
+(define-kb-op (kb-if () (condition thn [els #f]))
   `(kb-if ,condition ,thn ,els))
 
 (define-kb-op (sub () (n1 n2))

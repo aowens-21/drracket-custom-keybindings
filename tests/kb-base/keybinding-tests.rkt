@@ -26,20 +26,22 @@
                 (send editor insert "(define-type Shape\n  [circle (r number?)]\n  [rect (l number?)\n        (w number?)])")))
 
 (test-kb-program
- (arrow-to-arrow-star 45)
+ arrow-to-arrow-star
  (lambda (result-val result-pos result-text)
    (check-equal? result-pos 85)
    (check-equal? result-text "(define/contract (my-contracted-func x y)\n  (->* (integer? string?)\n       ()\n       boolean?)\n  (> x (string-length y)))"))
  #:setup-proc (lambda (editor)
-                (send editor insert "(define/contract (my-contracted-func x y)\n  (-> integer? string? boolean?)\n  (> x (string-length y)))")))
+                (send editor insert "(define/contract (my-contracted-func x y)\n  (-> integer? string? boolean?)\n  (> x (string-length y)))")
+                (send editor set-position 45)))
 
 (test-kb-program
- (arrow-star-to-arrow-i 45)
+ arrow-star-to-arrow-i
  (lambda (result-val result-pos result-text)
    (check-equal? result-pos 113)
    (check-equal? result-text "(define/contract (my-contracted-func x y)\n  (->i ([_ integer?]\n        [_ string?])\n       ()\n       [_ boolean?])\n  (> x (string-length y)))"))
  #:setup-proc (lambda (editor)
-                (send editor insert "(define/contract (my-contracted-func x y)\n  (->* (integer? string?)\n       ()\n       boolean?)\n  (> x (string-length y)))")))
+                (send editor insert "(define/contract (my-contracted-func x y)\n  (->* (integer? string?)\n       ()\n       boolean?)\n  (> x (string-length y)))")
+                (send editor set-position 45)))
 
 (test-kb-program
  (func-contract-to-provide-contract 1)

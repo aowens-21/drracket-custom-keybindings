@@ -285,3 +285,10 @@
  #:setup-proc (lambda (editor)
                 (send editor insert "()")
                 (send editor set-position 0)))
+
+(test-kb-program
+ (kb-if #f
+        (insert "was true"))
+ (lambda (result-val result-pos result-text)
+   (check-equal? result-text "")
+   (check-equal? result-pos 0)))

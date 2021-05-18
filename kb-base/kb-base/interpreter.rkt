@@ -14,6 +14,8 @@
 (define (interp expr editor bindings)
   (match expr
     [(? base-val?) expr]
+    [(kb-expr inner-expr)
+     (interp inner-expr editor bindings)]
     [`(insert ,s)
      (define text (interp s editor bindings))
      (error-unless-string text)
@@ -73,7 +75,8 @@
      (define cond-result (interp condition editor bindings))
      (if cond-result
          (interp thn editor bindings)
-         (interp els editor bindings))]
+         (when els
+           (interp els editor bindings)))]
     [`(seek-while ,condition ,size ,type)
      (let loop ([c (interp condition editor bindings)])
        (when c
