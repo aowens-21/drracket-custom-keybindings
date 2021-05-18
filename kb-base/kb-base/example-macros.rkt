@@ -1,6 +1,7 @@
 #lang racket/base
 
-(require plai)
+(require plai
+         (prefix-in contract: racket/contract))
 
 (require (for-syntax "../../tests/kb-base/example-keybindings/plai.rkt"
                      "../../tests/kb-base/example-keybindings/contracts.rkt"
@@ -54,3 +55,37 @@
                 [circle (r number?)]
                 [rect (l number?)
                       (w number?)])
+
+(define-syntax (-> stx)
+  (syntax-parse stx
+    [(_ mandatory-dom ... range)
+     (syntax-property
+      #'(contract:-> mandatory-dom ... range)
+      'keybinding-info
+      (make-kb "c:a"
+               arrow-to-arrow-star
+               "arrow-to-arrow-star"
+               'local
+               stx))]))
+
+(define/contract (my-f n)
+  (-> number? string?)
+  (make-string n #\a))
+
+(define-syntax (->* stx)
+  (syntax-parse stx
+    [(_ (mandatory-dom ...) (optional-dom ...) range)
+     (syntax-property
+      #'(contract:->* (mandatory-dom ...) (optional-dom ...) range)
+      'keybinding-info
+      (make-kb "c:q"
+               arrow-star-to-arrow-i
+               "arrow-star-to-arrow-i"
+               'local
+               stx))]))
+
+(define/contract (other-f n [c #\a])
+  (->* (number?)
+       (char?)
+       string?)
+  (make-string n c))

@@ -6,9 +6,8 @@
          arrow-star-to-arrow-i
          func-contract-to-provide-contract)
 
-(define (arrow-to-arrow-star pos)
-  (seq (set-position pos)
-       (delete 2)
+(define arrow-to-arrow-star
+  (seq (delete 2)
        (insert "->* ")
        (kb-let (['num-of-args (sub (count-iters (forward-sexp-exists?) 1 'sexp) 1)])
                (insert "(")
@@ -19,23 +18,28 @@
                (insert "()")
                (insert-return))))
 
-(define (arrow-star-to-arrow-i pos)
-  (seq (set-position pos)
-       (delete 3)
+(define arrow-star-to-arrow-i
+  (seq (delete 3)
        (insert "->i")
-       (down-sexp)
-       (kb-let (['num-of-args (count-iters (forward-sexp-exists?) 1 'sexp)])
-               (do-times (sub 'num-of-args 1)
-                         (seq (insert "[_ ")
-                              (forward-sexp)
-                              (insert "]")
-                              (insert-return)))
-               (insert "[_ ")
+       (kb-let (['dom-list-count (sub (count-iters
+                                       (forward-sexp-exists?)
+                                       1
+                                       'sexp)
+                                      1)])
+               (do-times 'dom-list-count
+                         (down-sexp)
+                         (kb-let (['num-of-args (count-iters (forward-sexp-exists?) 1 'sexp)])
+                                 (do-times (sub 'num-of-args 1)
+                                           (seq (insert "[_ ")
+                                                (forward-sexp)
+                                                (insert "]")
+                                                (insert-return)))
+                                 (insert "[_ ")
+                                 (forward-sexp)
+                                 (insert "]"))
+                         (up-sexp)
+                         (forward-sexp))
                (forward-sexp)
-               (insert "]")
-               (up-sexp)
-               ;; this is breaking bc it just goes to end of line
-               (do-times 3 (forward-sexp))
                (backward-sexp)
                (insert "[_ ")
                (forward-sexp)
