@@ -7,8 +7,8 @@
          is-kb-expr?
          is-buffer-safe-kb-expr?)
 
-(struct kb-expr (inner-expr) #:transparent)
-(struct buffer-safe-kb-expr kb-expr () #:transparent)
+(struct kb-expr (inner-expr) #:prefab)
+(struct buffer-safe-kb-expr kb-expr () #:prefab)
 
 (define (base-val? e)
   (or (number? e)

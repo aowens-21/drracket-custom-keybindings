@@ -1,6 +1,7 @@
 #lang racket/base
 
 (require racket/contract
+         rackunit
          "kb-expr.rkt")
 
 (require (for-syntax syntax/parse
@@ -72,25 +73,9 @@
                                 (step-type? expr)
                                 (symbol? expr)))
                           (list checked-ids ...))
-                  (let ([unchecked-ids (if (kb-expr? unchecked-ids)
-                                           (kb-expr-inner-expr unchecked-ids)
-                                           unchecked-ids)]
-                        ...
-                        [checked-ids (if (kb-expr? checked-ids)
-                                         (kb-expr-inner-expr checked-ids)
-                                         checked-ids)]
-                        ...)
-                    (buffer-safe-kb-expr body))]
+                  (buffer-safe-kb-expr body)]
                  [else
-                  (let ([unchecked-ids (if (kb-expr? unchecked-ids)
-                                           (kb-expr-inner-expr unchecked-ids)
-                                           unchecked-ids)]
-                        ...
-                        [checked-ids (if (kb-expr? checked-ids)
-                                         (kb-expr-inner-expr checked-ids)
-                                         checked-ids)]
-                        ...)
-                    (kb-expr body))])))]
+                  (kb-expr body)])))]
     ;; Generating a define but won't check its arguments,
     ;; determines if an op should produce safe based on #:safe?
     [(_ (name args ...) (~optional (~seq #:safe? v)) body)
@@ -102,13 +87,9 @@
                                            [check-id #'check-id]))
                                        (syntax->list #'(args ...)))])
        #'(define (name-id args ...)
-           (let ([arg-ids (if (kb-expr? arg-ids)
-                              (kb-expr-inner-expr arg-ids)
-                              arg-ids)]
-                 ...)
-             (if (~? v #f)
-                 (buffer-safe-kb-expr body)
-                 (kb-expr body)))))]))
+           (if (~? v #f)
+               (buffer-safe-kb-expr body)
+               (kb-expr body))))]))
 
 (define-syntax (seq stx)
   (syntax-parse stx
@@ -220,3 +201,24 @@
 
 (define-kb-op (forward-sexp-exists?) #:safe? #t
   `(forward-sexp-exists?))
+
+(module+ test
+  (check-equal? (insert "hello")
+                (kb-expr '(insert "hello")))
+
+  (check-equal? (get-position)
+                (buffer-safe-kb-expr '(get-position)))
+
+  (check-equal? (count-iters (forward-sexp-exists?)
+                             1
+                             'sexp)
+                (buffer-safe-kb-expr `(count-iters ,(buffer-safe-kb-expr '(forward-sexp-exists?))
+                                                   1
+                                                   sexp)))
+  
+  (check-equal? (seq (insert "hello")
+                     (delete 5)
+                     (set-position 0))
+                #s(kb-expr (seq #s(kb-expr (insert "hello"))
+                                #s(kb-expr (seq #s(kb-expr (delete 5 #f))
+                                                #s(kb-expr (set-position 0))))))))

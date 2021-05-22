@@ -49,7 +49,7 @@
   (and (vector? kb)
        (= (vector-length kb) 5) 
        (string? (vector-ref kb 0))
-       #t ;; TODO: check for the struct type
+       (kb-expr? (vector-ref kb 1))
        (string? (vector-ref kb 2))
        (or (symbol? (vector-ref kb 3))
            (pair? (vector-ref kb 3)))
@@ -65,8 +65,6 @@
   (when (valid-kb-vec? kb)
     (unless (set-member? registered-kb-names (vector-ref kb 2))
       (set-add! registered-kb-names (vector-ref kb 2))
-      ;; extract the actual quoted keybinding program from the struct
-      (vector-set! kb 1 (vector-ref (struct->vector (vector-ref kb 1)) 1))
       ;; set up the correct active ranges in the editor buffer
       (vector-set! kb 3 (convert-range-type-to-positions (vector-ref kb 3)
                                                          (vector-ref kb 4)))
