@@ -4,10 +4,8 @@
 
 (provide (struct-out kb-expr)
          (struct-out buffer-safe-kb-expr)
-         base-val?
          step-type?
-         is-kb-expr?
-         is-buffer-safe-kb-expr?
+         base-val?
          well-formed-kb-base-program?)
 
 (struct kb-expr (inner-expr) #:prefab)
@@ -27,18 +25,6 @@
                   sexp))
       #t
       #f))
-
-(define (is-kb-expr? e)
-  (or (kb-expr? e)
-      (base-val? e)
-      (step-type? e)
-      (symbol? e)))
-
-(define (is-buffer-safe-kb-expr? e)
-  (or (buffer-safe-kb-expr? e)
-      (base-val? e)
-      (step-type? e)
-      (symbol? e)))
 
 (define (well-formed-kb-base-program? p)
   (match p

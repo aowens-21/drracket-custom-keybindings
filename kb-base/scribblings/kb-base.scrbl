@@ -1,7 +1,8 @@
 #lang scribble/manual
 
 @(require (for-label racket
-                     racket/gui/base))
+                     racket/gui/base
+                     kb-base))
 
 @title{Keybinding Base Language}
 
@@ -64,15 +65,6 @@ the keybinding language does not support a traditional looping construct like th
 Instead, this language provides two forms: @racket[do-times] and @racket[count-iters], which are designed to work in conjunction
 with one another to approximate looping an uncertain number of times. Let's look at the definitions of these two forms:
 
-@defproc[(do-times [iter-count kb-expr?]
-                   [body kb-expr?])
-         any/c]{}
-
-@defproc[(count-iters [condition-expr non-modify-buffer-kb-expr?]
-                      [step-size-expr kb-expr?]
-                      [step-type symbol?])
-         number?]{}
-
 The purpose of @racket[do-times] is to perform some body expression a fixed number of times, specifically @racket[iter-count] number
 of times. Alone this is not very expressive and it's easy to think of examples where you need looping but a known, fixed number of
 iterations is not useful. This is where @racket[count-iters] comes in.
@@ -91,7 +83,14 @@ means that @racket[condition-expr] can only be an expression that we know leaves
 Combining these two constructs, we can take in some information at runtime about the editor's state and then use that in @racket[do-times] to loop
 the correct number of times. We will now look at a more complex keybinding that requires the use of both @racket[count-iters] and @racket[do-times].
 
-@section{Keybinding Language Operations}
+@section{Keybinding Language Reference}
+
+@defmodule[kb-base]
+
+This section describes every supported operation by the @racket[kb-base] language. Each operation
+returns an @deftech{kb-expr?} that represents an expression interpreted by the @racket[kb-base] interpreter.
+Similarly there is an @deftech{buffer-safe-kb-expr?} that represents an expression that doesn't change the
+current editor buffer.
 
 @defproc[(insert [str (or/c string? kb-expr?)])
          void?]{

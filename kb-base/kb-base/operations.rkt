@@ -8,39 +8,63 @@
                      racket/syntax
                      racket/base))
 
-(provide (contract-out [insert (-> is-kb-expr? is-kb-expr?)]
-                       [delete (->* (is-kb-expr?)
-                                    [(or/c #f is-kb-expr?)]
-                                    is-kb-expr?)]
-                       [insert-return (-> is-kb-expr?)]
-                       [set-position (-> is-kb-expr? is-kb-expr?)]
-                       [move-position (-> is-kb-expr? step-type? is-kb-expr?)]
-                       [forward-sexp (-> is-kb-expr?)]
-                       [backward-sexp (-> is-kb-expr?)]
-                       [down-sexp (-> is-kb-expr?)]
-                       [up-sexp (-> is-kb-expr?)]
-                       [get-forward-sexp (-> is-kb-expr?)]
-                       [get-position (-> is-kb-expr?)]
-                       [last-position (-> is-kb-expr?)]
+(provide (contract-out [insert (-> (or/c string? symbol? kb-expr?) kb-expr?)]
+                       [delete (->* ((or/c exact-nonnegative-integer? symbol? kb-expr?))
+                                    [(or/c #f exact-nonnegative-integer? symbol? kb-expr?)]
+                                    kb-expr?)]
+                       [insert-return (-> kb-expr?)]
+                       [set-position (-> (or/c exact-nonnegative-integer? symbol? kb-expr?)
+                                         kb-expr?)]
+                       [move-position (-> (or/c number?
+                                                symbol?
+                                                kb-expr?)
+                                          step-type?
+                                          kb-expr?)]
+                       [forward-sexp (-> kb-expr?)]
+                       [backward-sexp (-> kb-expr?)]
+                       [down-sexp (-> kb-expr?)]
+                       [up-sexp (-> kb-expr?)]
+                       [get-forward-sexp (-> kb-expr?)]
+                       [get-position (-> kb-expr?)]
+                       [last-position (-> kb-expr?)]
                        [get-character (->* ()
-                                           [(or/c #f is-kb-expr?)]
-                                           is-kb-expr?)]
+                                           [(or/c #f exact-nonnegative-integer? symbol? kb-expr?)]
+                                           kb-expr?)]
                        [get-forward-word (->* ()
-                                              [(or/c #f is-kb-expr?)]
-                                              is-kb-expr?)]
-                       [get-text (-> is-kb-expr? is-kb-expr? is-kb-expr?)]
-                       [count-iters (-> is-buffer-safe-kb-expr? is-kb-expr? step-type? is-kb-expr?)]
-                       [kb-set! (-> symbol? is-kb-expr? is-kb-expr?)]
-                       [kb-if (->* (is-kb-expr?
-                                    is-kb-expr?)
-                                   ((or/c #f is-kb-expr?))
-                                   is-kb-expr?)]
-                       [sub (-> is-kb-expr? is-kb-expr? is-kb-expr?)]
-                       [add (-> is-kb-expr? is-kb-expr? is-kb-expr?)]
-                       [seek-while (-> is-buffer-safe-kb-expr? is-kb-expr? step-type? is-kb-expr?)]
-                       [kb-not (-> is-kb-expr? is-kb-expr?)]
-                       [kb-equal? (-> is-kb-expr? is-kb-expr? is-kb-expr?)]
-                       [forward-sexp-exists? (-> is-kb-expr?)])
+                                              [(or/c #f exact-nonnegative-integer? symbol? kb-expr?)]
+                                              kb-expr?)]
+                       [get-text (-> (or/c exact-nonnegative-integer? symbol? kb-expr?)
+                                     (or/c exact-nonnegative-integer? symbol? kb-expr?)
+                                     kb-expr?)]
+                       [count-iters (-> (or/c boolean? symbol? buffer-safe-kb-expr?)
+                                        (or/c number? symbol? kb-expr?)
+                                        step-type?
+                                        kb-expr?)]
+                       [kb-set! (-> symbol?
+                                    (or/c base-val?
+                                          symbol?
+                                          kb-expr?)
+                                    kb-expr?)]
+                       [kb-if (->* ((or/c boolean? symbol? kb-expr?)
+                                    (or/c base-val? symbol? kb-expr?))
+                                   ((or/c base-val? symbol? kb-expr?))
+                                   kb-expr?)]
+                       [sub (-> (or/c number? symbol? kb-expr?)
+                                (or/c number? symbol? kb-expr?)
+                                kb-expr?)]
+                       [add (-> (or/c number? symbol? kb-expr?)
+                                (or/c number? symbol? kb-expr?)
+                                kb-expr?)]
+                       [seek-while (-> (or/c boolean? symbol? buffer-safe-kb-expr?)
+                                       (or/c number? symbol? kb-expr?)
+                                       step-type?
+                                       kb-expr?)]
+                       [kb-not (-> (or/c boolean? symbol? kb-expr?)
+                                   kb-expr?)]
+                       [kb-equal? (-> (or/c base-val? symbol? kb-expr?)
+                                      (or/c base-val? symbol? kb-expr?)
+                                      kb-expr?)]
+                       [forward-sexp-exists? (-> kb-expr?)])
          seq
          do-times
          kb-let)
@@ -68,7 +92,7 @@
                                            (syntax->list #'(checked-args ...)))])
        #'(define (name-id unchecked-args ... checked-args ...)
            (cond [(andmap (lambda (expr)
-                            (or (is-buffer-safe-kb-expr? expr)
+                            (or (buffer-safe-kb-expr? expr)
                                 (base-val? expr)
                                 (step-type? expr)
                                 (symbol? expr)))
@@ -104,7 +128,9 @@
   `(seq ,e1 ,e2))
 
 (define/contract make-seq
-  (-> is-kb-expr? is-kb-expr? is-kb-expr?)
+  (-> (or/c base-val? symbol? kb-expr?)
+      (or/c base-val? symbol? kb-expr?)
+      kb-expr?)
   make-seq-helper)
 
 (define-kb-op (insert s)
@@ -155,8 +181,8 @@
 (define-syntax (do-times stx)
   (syntax-parse stx
     [(_ count body-expr ...)
-     #:declare count (expr/c #'is-kb-expr?)
-     #:declare body-expr (expr/c #'is-kb-expr?)
+     #:declare count (expr/c #'(or/c number? kb-expr?))
+     #:declare body-expr (expr/c #'kb-expr?)
      #'(make-do-times count (seq body-expr ...))]))
 
 (define-kb-op (make-do-times count body)
@@ -169,8 +195,8 @@
   (syntax-parse stx
     [(_ ([name val-expr]) body-expr ...)
      #:declare name (expr/c #'symbol?)
-     #:declare val-expr (expr/c #'is-kb-expr?)
-     #:declare body-expr (expr/c #'is-kb-expr?)
+     #:declare val-expr (expr/c #'(or/c base-val? symbol? kb-expr?))
+     #:declare body-expr (expr/c #'(or/c base-val? symbol? kb-expr?))
      #'(do-kb-let name val-expr (seq body-expr ...))]
     [(_ ([name val-expr] let-clause ...+) body-expr ...)
      #'(do-kb-let name val-expr (kb-let (let-clause ...) body-expr ...))]))
