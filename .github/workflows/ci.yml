@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        racket-version: ["stable", "current"]pp
+        racket-version: ["stable", "current"]
         racket-variant: ["CS"]
       fail-fast: false
     steps:
