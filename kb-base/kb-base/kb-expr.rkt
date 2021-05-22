@@ -7,7 +7,8 @@
          base-val?
          step-type?
          is-kb-expr?
-         is-buffer-safe-kb-expr?)
+         is-buffer-safe-kb-expr?
+         well-formed-kb-base-program?)
 
 (struct kb-expr (inner-expr) #:prefab)
 (struct buffer-safe-kb-expr kb-expr () #:prefab)
@@ -19,11 +20,13 @@
       (boolean? e)))
 
 (define (step-type? t)
-  (member t '(simple
-              line
-              page
-              word
-              sexp)))
+  (if (member t '(simple
+                  line
+                  page
+                  word
+                  sexp))
+      #t
+      #f))
 
 (define (is-kb-expr? e)
   (or (kb-expr? e)
@@ -39,118 +42,125 @@
 
 (define (well-formed-kb-base-program? p)
   (match p
-    [(? base-val p) #t]
+    [(? base-val? p) #t]
     [(kb-expr inner-expr)
      (match inner-expr
-       [`(insert ,s)
-        (define text (interp s editor bindings))
-        (error-unless-string text)
-        (send editor insert text)]
-       [`(seq ,e1 ,e2)
-        (define e1-val (interp e1 editor bindings))
-        (if e2
-            (interp e2 editor bindings)
-            e1-val)]
-       [`(delete ,range #f)
-        (define range-val (interp range editor bindings))
-        (error-unless-number range-val)
-        (define current-pos (send editor get-end-position))
-        (send editor delete current-pos (+ current-pos range-val))]
-       [`(delete ,start ,end)
-        (define start-val (interp start editor bindings))
-        (error-unless-number start-val)
-        (define end-val (interp end editor bindings))
-        (error-unless-number end-val)
-        (send editor delete start-val end-val)]
-       [`(insert-return)
-        (send editor insert-return)]
-       [`(set-position ,p)
-        (define pos (interp p editor bindings))
-        (error-unless-number pos)
-        (send editor set-position pos)]
-       [`(move-position ,size ,type)
-        (define step-size (interp size editor bindings))
-        (error-unless-number step-size)
-        (do-step editor step-size type)]
-       [`(forward-sexp)
-        (send editor forward-sexp (send editor get-end-position))]
-       [`(backward-sexp)
-        (send editor backward-sexp (send editor get-end-position))]
-       [`(down-sexp)
-        (send editor down-sexp (send editor get-end-position))]
-       [`(up-sexp)
-        (send editor up-sexp (send editor get-end-position))]
-       [`(do-times ,count ,body)
-        (define iter-count (interp count editor bindings))
-        (error-unless-number iter-count)
-        (for ([i (in-range iter-count)])
-          (interp body editor bindings))]
-       [`(kb-let ,name ,val-expr ,body)
-        (define old-binding/#f (if (hash-has-key? bindings name)
-                                   (hash-ref bindings name)
-                                   #f))
-        (define new-val (interp val-expr editor bindings))
-        (hash-set! bindings name new-val)
-        (begin0 (interp body editor bindings)
-                (hash-set! bindings name old-binding/#f))]
-       [`(kb-set! ,name ,new-val)
-        (unless (hash-has-key? bindings name)
-          (error 'interp "Cannot call set on unbound identifier: ~s" name))
-        (hash-set! bindings name (interp new-val editor bindings))]
-       [`(kb-if ,condition ,thn ,els)
-        (define cond-result (interp condition editor bindings))
-        (if cond-result
-            (interp thn editor bindings)
-            (when els
-              (interp els editor bindings)))]
-       [`(seek-while ,condition ,size ,type)
-        (let loop ([c (interp condition editor bindings)])
-          (when c
-            (define old-pos (send editor get-end-position))
-            (do-step editor size type)
-            (when (not (= old-pos (send editor get-end-position)))
-              (loop (interp condition editor bindings)))))]
-       [`(sub ,n1 ,n2)
-        (num-op - (interp n1 editor bindings) (interp n2 editor bindings))]
-       [`(add ,n1 ,n2)
-        (num-op + (interp n1 editor bindings) (interp n2 editor bindings))]
-       [`(count-iters ,condition ,size ,type)
-        (define step-size (interp size editor bindings))
-        (error-unless-number step-size)
-        (do-count-iters editor condition bindings step-size type)]
-       [`(get-position)
-        (send editor get-end-position)]
-       [`(last-position)
-        (send editor last-position)]
-       [`(get-forward-sexp)
-        (send editor get-forward-sexp (send editor get-end-position))]
-       [`(kb-not ,e)
-        (define expr-val (interp e editor bindings))
-        (error-unless-boolean expr-val)
-        (not expr-val)]
-       [`(kb-equal? ,e1 ,e2)
-        (equal? (interp e1 editor bindings)
-                (interp e2 editor bindings))]
-       [`(forward-sexp-exists?)
-        (if (send editor get-forward-sexp (send editor get-end-position))
-            #t
-            #f)]
-       [`(get-forward-word #f)
-        (process-get-forward-word editor (send editor get-end-position))]
-       [`(get-forward-word ,pos)
-        (define pos-val (interp pos editor bindings))
-        (error-unless-number pos-val)
-        (process-get-forward-word editor pos-val)]
+       [`(get-position) #t]
+       [`(last-position) #t]
+       [`(forward-sexp) #t]
+       [`(backward-sexp) #t]
+       [`(up-sexp) #t]
+       [`(down-sexp) #t]
+       [`(insert-return) #t]
+       [`(forward-sexp-exists?) #t]
+       [`(get-forward-sexp) #t]
+       [`(insert ,expr)
+        (well-formed-kb-base-program? expr)]
+       [`(delete ,expr #f)
+        (well-formed-kb-base-program? expr)]
+       [`(delete ,start-expr ,end-expr)
+        (and (well-formed-kb-base-program? start-expr)
+             (well-formed-kb-base-program? end-expr))]
+       [`(set-position ,expr)
+        (well-formed-kb-base-program? expr)]
+       [`(seq ,expr1 ,expr2)
+        (and (well-formed-kb-base-program? expr1)
+             (well-formed-kb-base-program? expr2))]
+       [`(move-position ,size-expr ,type)
+        (and (well-formed-kb-base-program? size-expr)
+             (step-type? type))]
+       [`(get-character #f) #t]
+       [`(get-character ,pos-expr)
+        (well-formed-kb-base-program? pos-expr)]
+       [`(get-forward-word #f) #t]
+       [`(get-forward-word ,pos-expr)
+        (well-formed-kb-base-program? pos-expr)]
+       [`(get-text ,start-expr ,end-expr)
+        (and (well-formed-kb-base-program? start-expr)
+             (well-formed-kb-base-program? end-expr))]
+       [`(do-times ,count-expr ,body-expr)
+        (and (well-formed-kb-base-program? count-expr)
+             (well-formed-kb-base-program? body-expr))]
+       [`(count-iters ,cond-expr ,size-expr ,type)
+        (and (well-formed-buffer-safe-kb-expr? cond-expr)
+             (well-formed-kb-base-program? size-expr)
+             (step-type? type))]
+       [`(seek-while ,cond-expr ,size-expr ,type)
+        (and (well-formed-buffer-safe-kb-expr? cond-expr)
+             (well-formed-kb-base-program? size-expr)
+             (step-type? type))]
+       [`(kb-let ,name ,val-expr ,body-expr)
+        (and (symbol? name)
+             (well-formed-kb-base-program? val-expr)
+             (well-formed-kb-base-program? body-expr))]
+       [`(kb-set! ,name ,val-expr)
+        (and (symbol? name)
+             (well-formed-kb-base-program? val-expr))]
+       [`(kb-if ,cond-expr ,thn-expr ,els-expr)
+        (and (well-formed-kb-base-program? cond-expr)
+             (well-formed-kb-base-program? thn-expr)
+             (well-formed-kb-base-program? els-expr))]
+       [`(kb-equal? ,expr1 ,expr2)
+        (and (well-formed-kb-base-program? expr1)
+             (well-formed-kb-base-program? expr2))]
+       [`(kb-not ,expr)
+        (well-formed-kb-base-program? expr)]
+       [`(add ,expr1 ,expr2)
+        (and (well-formed-kb-base-program? expr1)
+             (well-formed-kb-base-program? expr2))]
+       [`(sub ,expr1 ,expr2)
+        (and (well-formed-kb-base-program? expr1)
+             (well-formed-kb-base-program? expr2))]
+       [else #f])]
+    [(? symbol? p) #t]
+    [else #f]))
+
+(define (well-formed-buffer-safe-kb-expr? e)
+  (match e
+    [(? base-val?) #t]
+    [(buffer-safe-kb-expr inner-expr)
+     (match inner-expr
+       [`(get-position) #t]
        [`(get-text ,start ,end)
-        (define start-val (interp start editor bindings))
-        (define end-val (interp end editor bindings))
-        (error-unless-number start-val)
-        (error-unless-number end-val)
-        (send editor get-text start-val end-val)]
-       [`(get-character #f)
-        (send editor get-character (send editor get-end-position))]
+        (and (well-formed-buffer-safe-kb-expr? start)
+             (well-formed-buffer-safe-kb-expr? end))]
+       [`(last-position) #t]
        [`(get-character ,pos)
-        (define pos-val (interp pos editor bindings))
-        (error-unless-number pos-val)
-        (send editor get-character (interp pos editor bindings))])]
-     [(? symbol? p) #t]))
+        (if pos
+            (well-formed-buffer-safe-kb-expr? pos)
+            #t)]
+       [`(get-forward-word ,pos)
+        (if pos
+            (well-formed-buffer-safe-kb-expr? pos)
+            #t)]
+       [`(get-forward-sexp) #t]
+       [`(forward-sexp-exists?) #t]
+       [`(kb-equal? ,e1 ,e2)
+        (and (well-formed-buffer-safe-kb-expr? e1)
+             (well-formed-buffer-safe-kb-expr? e2))]
+       [`(kb-not ,e1)
+        (well-formed-buffer-safe-kb-expr? e1)]
+       [`(add ,n1 ,n2)
+        (and (well-formed-buffer-safe-kb-expr? n1)
+             (well-formed-buffer-safe-kb-expr? n2))]
+       [`(sub ,n1 ,n2)
+        (and (well-formed-buffer-safe-kb-expr? n1)
+             (well-formed-buffer-safe-kb-expr? n2))]
+       [`(kb-if ,condition ,thn ,els)
+        (and (well-formed-buffer-safe-kb-expr? condition)
+             (well-formed-buffer-safe-kb-expr? thn)
+             (well-formed-buffer-safe-kb-expr? els))]
+       [`(kb-let ,name ,val-expr ,body)
+        (and (well-formed-buffer-safe-kb-expr? val-expr)
+             (well-formed-buffer-safe-kb-expr? body))]
+       [`(seq ,e1 ,e2)
+        (and (well-formed-buffer-safe-kb-expr? e1)
+             (well-formed-buffer-safe-kb-expr? e2))]
+       [`(kb-set! ,name ,new-val-expr)
+        (well-formed-buffer-safe-kb-expr? new-val-expr)]
+       [`(count-iters ,condition ,step-size ,step-type)
+        (and (well-formed-buffer-safe-kb-expr? condition)
+             (well-formed-buffer-safe-kb-expr? step-size))]
+       [else #f])]
+    [(? symbol?) #t]
+    [else #f]))

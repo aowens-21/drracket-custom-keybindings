@@ -49,7 +49,7 @@
   (and (vector? kb)
        (= (vector-length kb) 5) 
        (string? (vector-ref kb 0))
-       (kb-expr? (vector-ref kb 1))
+       (well-formed-kb-base-program? (vector-ref kb 1))
        (string? (vector-ref kb 2))
        (or (symbol? (vector-ref kb 3))
            (pair? (vector-ref kb 3)))
