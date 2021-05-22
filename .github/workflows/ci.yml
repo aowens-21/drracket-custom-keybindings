@@ -31,9 +31,5 @@ jobs:
         run: raco pkg install --no-docs --auto --name drracket-custom-keybindings ./drracket-custom-keybindings
       - name: Checking installed libraries
         run: raco pkg show -a
-      - name: Testing drracket-custom-keybindings library
-        run: raco test -t -x -c drracket-custom-keybindings
-      - name: Testing kb-base library
-        run: raco test -t -x -c kb-base
-      - name: Running custom-syntax-format tests
-        run: raco test -t -c tests/*
+      - name: Run tests for the package
+        run: raco test -t -x -p drracket-custom-keybindings
