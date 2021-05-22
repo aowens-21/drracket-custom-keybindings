@@ -1,7 +1,8 @@
 #lang info
 
 (define collection 'multi)
-(define deps '("base"
+(define deps '("rackunit-lib"
+               "base"
                "drracket-plugin-lib"
                "gui-lib"
                "plai-lib"
