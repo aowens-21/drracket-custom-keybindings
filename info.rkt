@@ -1,5 +1,8 @@
 #lang info
 
+(define version "0.1")
+(define pkg-authors '(aowens-21))
+(define pkg-desc "A plugin and language for implementing macro-specific keybinding extensions for DrRacket")
 (define collection 'multi)
 (define deps '("rackunit-lib"
                "base"
