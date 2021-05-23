@@ -3,6 +3,9 @@ on:
     paths:
     - '.github/workflows/**'
     - 'drracket-custom-keybindings/**'
+    - 'tests/**'
+    - 'kb-base/**'
+    - 'info.rkt'
 name: CI
 jobs:
   build:
