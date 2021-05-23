@@ -31,7 +31,7 @@ jobs:
           racket -v
           raco pkg show -a
       - name: Installing drracket-custom-keybindings and its dependencies
-        run: raco pkg install --no-docs --auto --name drracket-custom-keybindings ./drracket-custom-keybindings
+        run: raco pkg install --no-docs --auto
       - name: Checking installed libraries
         run: raco pkg show -a
       - name: Run tests for the package
