@@ -35,4 +35,4 @@ jobs:
       - name: Checking installed libraries
         run: raco pkg show -a
       - name: Run tests for the package
-        run: raco test -t -x -p drracket-custom-keybindings
+        run: raco test -t -p drracket-custom-keybindings

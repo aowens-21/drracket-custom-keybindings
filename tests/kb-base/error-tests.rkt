@@ -8,40 +8,31 @@
 (check-exn
  exn:fail?
  (lambda ()
-   (define e (new racket:text%))
-   (run-kb-program (insert 5) e)))
+   (test-kb-program (insert 5))))
 
 (check-exn
  exn:fail?
  (lambda ()
-   (define e (new racket:text%))
-   (run-kb-program (do-times (count-iters (set-position 0) 1 'sexp)
-                             (insert "a"))
-                   e)))
+   (test-kb-program (do-times (count-iters (set-position 0) 1 'sexp)
+                             (insert "a")))))
 
 (check-exn
  exn:fail?
  (lambda ()
-   (define e (new racket:text%))
-   (run-kb-program (seek-while (set-position 0) 1 'simple)
-                   e)))
+   (test-kb-program (seek-while (set-position 0) 1 'simple))))
 
 (check-exn
  exn:fail?
  (lambda ()
-   (define e (new racket:text%))
-   (run-kb-program (count-iters (seq (forward-sexp-exists?)
+   (test-kb-program (count-iters (seq (forward-sexp-exists?)
                                      (set-position 1))
                                 1
-                                'sexp)
-                   e)))
+                                'sexp))))
 
 (check-exn
  exn:fail?
  (lambda ()
-   (define e (new racket:text%))
-   (run-kb-program (kb-let (['b 4])
+   (test-kb-program (kb-let (['b 4])
                      (count-iters (kb-set! 'b (set-position 1))
                                   1
-                                  'sexp)
-                   e))))
+                                  'sexp)))))
