@@ -2,8 +2,8 @@
 
 (require racket/class
          racket/contract
-         "interpreter.rkt"
-         "kb-expr.rkt"
+         "kb-base/interpreter.rkt"
+         "kb-base/kb-expr.rkt"
          framework)
 
 (provide (contract-out [get-kb-program-result (-> (is-a?/c racket:text<%>)

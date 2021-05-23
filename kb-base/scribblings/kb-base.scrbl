@@ -552,7 +552,7 @@ current editor buffer.
  Subtracts the result of @racket[num-expr2] from the result of @racket[num-expr1].
 }
 
-@subsection{Helpers and Testing Utilities}
+@subsection{Helpers}
 
 This section documents helpers provided by the @racket[kb-base] language.
 
@@ -571,7 +571,11 @@ handle setting that editor up and getting results back from running programs.
  information that corresponds to the content of an @tech{'keybinding-info} property. The last item in the vector
  is a @racket[srcloc] built from the passed @racket[stx].
 }
-                  
+
+
+@subsection{Testing Utilities}
+
+@defmodule[kb-base/test-utils]
 
 @defproc[(get-kb-program-result [editor (is-a?/c racket:text<%>)]
                                 [kb-program (or/c string? number? char? boolean? symbol? kb-expr?)])

@@ -2,7 +2,8 @@
 
 (require rackunit
          racket/class
-         kb-base)
+         kb-base
+         kb-base/test-utils)
 
 (test-kb-program
  (insert "hello")

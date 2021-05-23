@@ -14,4 +14,3 @@
                      "racket-doc"
                      "rackunit-lib"
                      "scribble-lib"))
-(define test-omit-paths '("drracket-custom-keybindings/custom-keybinding-tool.rkt"))

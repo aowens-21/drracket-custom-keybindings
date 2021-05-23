@@ -2,8 +2,8 @@
 
 (require rackunit
          kb-base
-         racket/class
-         framework)
+         kb-base/test-utils
+         racket/class)
 
 (check-exn
  exn:fail?

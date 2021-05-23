@@ -25,7 +25,7 @@ jobs:
           variant: ${{ matrix.racket-variant }}
           version: ${{ matrix.racket-version }}
       - name: Installing drracket, rackunit, and framework
-        run: raco pkg install --auto base drracket rackunit-lib gui-lib
+        run: raco pkg install --auto base rackunit-lib gui-lib
       - name: Checking racket version and installed libraries
         run: |
           racket -v
