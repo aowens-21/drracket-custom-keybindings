@@ -3,7 +3,6 @@
 (require racket/class
          rackunit
          kb-base
-         "test-utils.rkt"
          "example-keybindings/contracts.rkt"
          "example-keybindings/misc-racket.rkt"
          "example-keybindings/plai.rkt")

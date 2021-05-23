@@ -3,8 +3,7 @@
 (require rackunit
          kb-base
          racket/class
-         framework
-         "test-utils.rkt")
+         framework)
 
 (check-exn
  exn:fail?
