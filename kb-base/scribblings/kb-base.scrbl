@@ -15,13 +15,14 @@ keybindings.
 @section{Getting Started with Keybindings}
 
 This language is designed to be used in conjunction with Racket's @racket[syntax-property]s, to extend DrRacket
-with new keybindings. To do that, macro authors need to follow a specific interface for macros they want to attach
+with new keybindings. To do that, macro authors need to follow a specific @racket[syntax-property] interface for macros they want to attach 
 keybindings to.
 
 @subsection{A Simple Example}
 
 What follows is a very simple keybinding which uses CTRL+a to insert the text "watermelon" into the buffer (the body
-of the macro is unimportant for this example):
+of the macro is unimportant for this example), feel free to paste this into your DrRacket once you have the plugin installed
+and try it out:
 
 @racketblock[
  (define-syntax (my-macro stx)
@@ -51,7 +52,7 @@ we have:
                       (syntax-span stx)))
  ]
 
-The first element of the vector is a string representing the key combination that should be mapped to your keybinding,
+The first element of the vector is a string representing the @deftech{key combination} that should be mapped to your keybinding,
 it follows the same conventions in Racket's @racket[keymap%].
 
 The second element of the vector should be a program written in this keybinding language, you can see the full list
@@ -65,9 +66,92 @@ positions of the active range. If @racket['global] is provided, the keybinding i
 @racket['local] is provided, the keybinding is active inside the body of the macro usage.
 
 The fifth element is a @racket[srcloc] used by the @racket[drracket-custom-keybindings] plugin to correctly extract @tech{'keybinding-info}
-properties from the expaned syntax in the editor.
+properties from the expanded syntax in the editor.
+
+@subsection{A More Involved Example}
+
+Maybe inserting "watermelon" into the buffer isn't a great keybinding for your use case, and you want some more complex
+keybindings related to your macro. Luckily this tool supports more than just simple fruit-related string insertion, so lets consider
+a more interesting example. Maybe you're writing an @racket[cond] expression with two clauses, like the one below, and you want
+to move some things from the first clause into the second @racket[else] clause. In this case we'll say everything after the
+insertion point that is inside the clause should be moved, so the keybinding will work in relation to the current position (in this case
+imagine the cursor is preceding the s-expression "(body-2)" in the first clause). We start with something like:
+
+@racketblock[
+ (cond [(some-condition-expr)
+        (body-1)
+        (body-2)
+        (body-3)]
+       [else
+        (else-body)])]
+
+and we want to end up with:
+
+@racketblock[
+ (cond [(some-condition-expr)
+        (body-1)]
+       [else
+        (else-body)
+        (body-2)
+        (body-3)])
+ ]
+
+The idea of this keybinding is to basically loop over each of the expressions in the cond-clause following the current insertion point
+until we hit the end the of the clause. At this point we can copy the text between the point where we started and where we ended and move
+it to the next clause (following any sub-expressions in that clause). First off lets look at the macro we might write to attach this keybinding
+to:
+
+@racketblock[
+ (define-syntax (my-cond stx)
+   (syntax-property (...) ;; some cond implementation
+                    'keybinding-info
+                    (make-kb "c:b"
+                             move-exprs-into-next-cond-clause ;; we'll fill this in next
+                             "my-cond-keybinding"
+                             'local
+                             stx)))     
+ ]
+
+I've omitted some details including the implementation of @racket[my-cond] and exactly what @racket[move-exprs-into-next-cond-clause]
+is referring to, but lets look at the other pieces of the @tech{'keybinding-info} property. The @tech{key combination} is pretty self-explanatory:
+it means that the keybinding is activated by CTRL+b. The name is simply @racket["my-cond-keybinding"]. The activation range is the only
+other interesting property, as it is now @racket['local] instead @racket['global], meaning this keybinding is only active inside a
+usage of @racket[my-cond]. Although this keybinding may be useful in other contexts we are really designing it for @racket[my-cond], so it's
+a good idea to make it @racket['local] to avoid conflicts with other keybindings. Now we can look at @racket[move-exprs-into-next-cond-clause]:
+
+@racketblock[
+ (define-for-syntax move-exprs-into-next-cond-clause
+   (kb-let (['start-pos (get-position)])
+           (seek-while (forward-sexp-exists?)
+                       1
+                       'sexp)
+           (kb-let (['end-pos (get-position)]
+                    ['text-to-move (get-text 'start-pos 'end-pos)])
+                   (up-sexp)
+                   (forward-sexp)
+                   (down-sexp)
+                   (seek-while (forward-sexp-exists?)
+                               1
+                               'sexp)
+                   (insert-return)
+                   (insert 'text-to-move)
+                   (delete 'start-pos 'end-pos)
+                   (set-position 'start-pos))))
+ ]
+
+This program starts off by storing its starting position so it knows where to begin copying the body
+of the clause. Then it uses the @racket[seek-while] form to step over each subsequent s-expression until
+it hits the end of the clause and stops. @racket[seek-while] can be thought of as a way to move over the buffer
+until a condition returns false or it hits one end of the buffer. The rest of program stores the end position to copy,
+moves to the next @racket[cond] clause, and pastes the correct text into it. Once this is done, the original text is deleted
+and the position is reset to the start position. In the next section we'll see how to use @racket[kb-base]'s looping
+forms to accomplish the same thing, and then in section 2 we'll see more examples of keybinding programs.
 
 @subsection{Looping Forms}
+
+The previous example could be accomplished using the looping forms @racket[do-times] and @racket[count-iters] instead of
+@racket[seek-while] (indeed seek-while is just intended to be a nice way to seek through the buffer without use these looping forms).
+First let's think about the reason for these two unconventional looping constructs.
 
 One desirable property of keybinding programs running inside your editor is that they should always terminate. For this reason
 the keybinding language does not support a traditional looping construct like those you might have seen in imperative languages.
@@ -110,6 +194,29 @@ produces:
 The idea is that @racket[count-iters] cannot change the buffer at all, meaning the position and content will stay the same no matter what. Combining
 these two constructs, we can take in some information at runtime about the editor's state and then use that in @racket[do-times] to loop some unknown
 number of times. We will now look at some more complex keybindings, some of which require the use of both @racket[count-iters] and @racket[do-times].
+As a final example for this section, consider the following rewrite of the @racket[cond] example in the previous section:
+
+@racketblock[
+ (define-for-syntax move-exprs-into-next-cond-clause
+   (kb-let (['start-pos (get-position)])
+           (do-times (count-iters (forward-sexp-exists?)
+                                  1
+                                  'sexp)
+                     (forward-sexp))
+           (kb-let (['end-pos (get-position)]
+                    ['text-to-move (get-text 'start-pos 'end-pos)])
+                   (up-sexp)
+                   (forward-sexp)
+                   (down-sexp)
+                   (do-times (count-iters (forward-sexp-exists?)
+                                          1
+                                          'sexp)
+                             (forward-sexp))
+                   (insert-return)
+                   (insert 'text-to-move)
+                   (delete 'start-pos 'end-pos)
+                   (set-position 'start-pos))))
+ ]
 
 @section{Some Example Keybindings}
 
