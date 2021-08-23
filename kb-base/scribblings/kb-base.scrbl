@@ -518,19 +518,21 @@ current editor buffer.
  Returns the last position in the editor.
 }
 
-@defproc[(move-position [step-size-expr (or/c number?
-                                              symbol?
-                                              kb-expr?)]
-                        [step-type (or/c 'simple
-                                         'word
-                                         'line
-                                         'page
-                                         'sexp)])
+@defproc[(move-position [code (or/c 'up
+                                    'down
+                                    'left
+                                    'right
+                                    'home
+                                    'end)]
+                        [kind (or/c 'simple
+                                    'word
+                                    'line
+                                    'page
+                                    'sexp)])
          kb-expr?]{
- Uses the same rules as @racket[move-position] to move according to the result of @racket[step-size-expr]]
- and @racket[step-type].
+ Uses the same rules as @racket[text%]'s move-position to move based on the passed @racket[code] and @racket[kind].
 
- Additionally, takes a type @racket['sexp], which moves over @racket[step-size-expr] s-expressions at a time.
+ Additionally, takes a kind @racket['sexp], which works with @racket['right] or @racket['left].
 }
 
 @defproc[(forward-sexp)
