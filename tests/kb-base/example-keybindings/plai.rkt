@@ -51,5 +51,5 @@
                           (forward-sexp)))
         (set-position 'insert-posn)
         (seek-while (kb-not (kb-equal? (get-character) #\])) -1 'simple)
-        (move-position 1 'simple)
+        (move-position 'right 'simple)
         (insert ")"))))

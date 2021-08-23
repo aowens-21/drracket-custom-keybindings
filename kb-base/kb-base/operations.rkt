@@ -15,7 +15,7 @@
                        [insert-return (-> kb-expr?)]
                        [set-position (-> (or/c exact-nonnegative-integer? symbol? kb-expr?)
                                          kb-expr?)]
-                       [move-position (-> (or/c number?
+                       [move-position (-> (or/c symbol?
                                                 symbol?
                                                 kb-expr?)
                                           step-type?
@@ -145,8 +145,8 @@
 (define-kb-op (set-position pos)
   `(set-position ,pos))
 
-(define-kb-op (move-position size type)
-  `(move-position ,size ,type))
+(define-kb-op (move-position code kind)
+  `(move-position ,code ,kind))
 
 (define-kb-op (forward-sexp)
   `(forward-sexp))

@@ -12,7 +12,7 @@
        (kb-let (['num-of-args (sub (count-iters (forward-sexp-exists?) 1 'sexp) 1)])
                (insert "(")
                (delete 1)
-               (do-times 'num-of-args (move-position 1 'sexp))
+               (do-times 'num-of-args (move-position 'right 'sexp))
                (insert ")")
                (insert-return)
                (insert "()")
@@ -49,7 +49,7 @@
 ;; TODO: The indentation here is horrible, need defines in a seq or something
 (define (func-contract-to-provide-contract pos)
   ;; getting the correct text to insert
-  (seq (move-position 1 'word)
+  (seq (move-position 'right 'word)
        (delete 9)
        (down-sexp)
        (kb-let (['func-name (get-forward-word)])
@@ -65,7 +65,7 @@
     
                                        ;;from the start of the define/contract
                                        (up-sexp)
-                                       (move-position -1 'line)
+                                       (move-position 'left 'line)
                                        (insert "(provide (contract-out")
                                        (insert-return)
                                        (insert "[")

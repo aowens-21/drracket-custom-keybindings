@@ -42,10 +42,8 @@
         (define pos (interp p editor bindings))
         (error-unless-number pos)
         (send editor set-position pos)]
-       [`(move-position ,size ,type)
-        (define step-size (interp size editor bindings))
-        (error-unless-number step-size)
-        (do-step editor step-size type)]
+       [`(move-position ,code ,kind)
+        (do-move-position editor code kind)]
        [`(forward-sexp)
         (send editor forward-sexp (send editor get-end-position))]
        [`(backward-sexp)
@@ -156,22 +154,13 @@
     (error 'interp "Unbound identifier: ~s" id))
   val/#f)
 
-(define (do-step editor size type)
-  (unless (not (= size 0))
-    (error 'count-iters "Step size for iteration must be non-zero"))
-  (define direction (cond [(member type '(page))
-                           (if (< size 0) 'up 'down)]
-                          [(member type '(simple word line sexp))
-                           (if (< size 0) 'left 'right)]
-                          [else
-                           (error 'count-iters "Invalid type passed to count-iters")]))
-  (define abs-size (abs size))
-  (for ([i (in-range abs-size)])
-    (case type
-      ['sexp (if (equal? direction 'left)
-                 (send editor backward-sexp (send editor get-end-position))
-                 (send editor forward-sexp (send editor get-end-position)))]
-      [else (send editor move-position direction #f type)])))
+(define (do-move-position editor code kind)
+  (cond [(equal? kind 'sexp)
+         (if (equal? code 'left)
+             (send editor backward-sexp (send editor get-end-position))
+             (send editor forward-sexp (send editor get-end-position)))]
+        [else
+         (send editor move-position code #f kind)]))
 
 (define (process-get-forward-word editor pos)
   (define old-start (send editor get-start-position))
@@ -197,3 +186,20 @@
           (loop (interp condition editor bindings)))))
     (send editor set-position original-pos)
     iter-count))
+
+(define (do-step editor size type)
+  (unless (not (= size 0))
+    (error 'count-iters "Step size for iteration must be non-zero"))
+  (define direction (cond [(member type '(page))
+                           (if (< size 0) 'up 'down)]
+                          [(member type '(simple word line sexp))
+                           (if (< size 0) 'left 'right)]
+                          [else
+                           (error 'count-iters "Invalid type passed to count-iters")]))
+  (define abs-size (abs size))
+  (for ([i (in-range abs-size)])
+    (case type
+      ['sexp (if (equal? direction 'left)
+                 (send editor backward-sexp (send editor get-end-position))
+                 (send editor forward-sexp (send editor get-end-position)))]
+      [else (send editor move-position direction #f type)])))

@@ -66,8 +66,8 @@
                 (send editor insert "abcde")))
 
 (test-kb-program
- (seq (move-position 2 'simple)
-      (move-position -1 'simple))
+ (seq (do-times 2 (move-position 'right 'simple))
+      (move-position 'left 'simple))
  (lambda (result-val result-pos result-text)
    (check-equal? result-pos 1)
    (check-equal? result-text "abc"))
