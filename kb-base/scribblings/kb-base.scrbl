@@ -649,6 +649,42 @@ current editor buffer.
  Evaluates @racket[expr1] and @racket[expr2], and then compares their results using @racket[equal?].
 }
 
+@defproc[(kb-or [expr1 (or/c boolean? symbol? kb-expr?)]
+                [expr2 (or/c boolean? symbol? kb-expr?)])
+         kb-expr?]{
+ @racket[or]'s the result of @racket[expr1] with @racket[expr2].
+}
+
+@defproc[(kb-and [expr1 (or/c boolean? symbol? kb-expr?)]
+                 [expr2 (or/c boolean? symbol? kb-expr?)])
+         kb-expr?]{
+ @racket[and]'s the result of @racket[expr1] with @racket[expr2].
+}
+
+@defproc[(kb-gte [expr1 (or/c number? symbol? kb-expr?)]
+                 [expr2 (or/c number? symbol? kb-expr?)])
+         kb-expr?]{
+ Returns @racket[#t] if the result of @racket[expr1] is @racket[>=] the result of @racket[expr2].
+}
+
+@defproc[(kb-lte [expr1 (or/c number? symbol? kb-expr?)]
+                 [expr2 (or/c number? symbol? kb-expr?)])
+         kb-expr?]{
+ Returns @racket[#t] if the result of @racket[expr1] is @racket[<=] the result of @racket[expr2].
+}
+
+@defproc[(kb-gt [expr1 (or/c number? symbol? kb-expr?)]
+                [expr2 (or/c number? symbol? kb-expr?)])
+         kb-expr?]{
+ Returns @racket[#t] if the result of @racket[expr1] is @racket[>] the result of @racket[expr2].
+}
+
+@defproc[(kb-lt [expr1 (or/c number? symbol? kb-expr?)]
+                [expr2 (or/c number? symbol? kb-expr?)])
+         kb-expr?]{
+ Returns @racket[#t] if the result of @racket[expr1] is @racket[<] the result of @racket[expr2].
+}
+
 @defproc[(add [num-expr1 (or/c number? symbol? kb-expr?)]
               [num-expr2 (or/c number? symbol? kb-expr?)])
          kb-expr?]{

@@ -106,6 +106,28 @@
         (error-unless-boolean e1-val)
         (error-unless-boolean e2-val)
         (or e1-val e2-val)]
+       [`(kb-and ,e1 ,e2)
+        (define e1-val (interp e1 editor bindings))
+        (define e2-val (interp e2 editor bindings))
+        (error-unless-boolean e1-val)
+        (error-unless-boolean e2-val)
+        (and e1-val e2-val)]
+       [`(kb-gte ,e1 ,e2)
+        (num-op >=
+                (interp e1 editor bindings)
+                (interp e2 editor bindings))]
+       [`(kb-lte ,e1 ,e2)
+        (num-op <=
+                (interp e1 editor bindings)
+                (interp e2 editor bindings))]
+       [`(kb-gt ,e1 ,e2)
+        (num-op >
+                (interp e1 editor bindings)
+                (interp e2 editor bindings))]
+       [`(kb-lt ,e1 ,e2)
+        (num-op <
+                (interp e1 editor bindings)
+                (interp e2 editor bindings))]
        [`(kb-equal? ,e1 ,e2)
         (equal? (interp e1 editor bindings)
                 (interp e2 editor bindings))]

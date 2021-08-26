@@ -64,6 +64,21 @@
                        [kb-or (-> (or/c boolean? symbol? kb-expr?)
                                   (or/c boolean? symbol? kb-expr?)
                                   kb-expr?)]
+                       [kb-and (-> (or/c boolean? symbol? kb-expr?)
+                                   (or/c boolean? symbol? kb-expr?)
+                                   kb-expr?)]
+                       [kb-gte (-> (or/c number? symbol? kb-expr?)
+                                   (or/c number? symbol? kb-expr?)
+                                   kb-expr?)]
+                       [kb-lte (-> (or/c number? symbol? kb-expr?)
+                                   (or/c number? symbol? kb-expr?)
+                                   kb-expr?)]
+                       [kb-gt (-> (or/c number? symbol? kb-expr?)
+                                   (or/c number? symbol? kb-expr?)
+                                   kb-expr?)]
+                       [kb-lt (-> (or/c number? symbol? kb-expr?)
+                                   (or/c number? symbol? kb-expr?)
+                                   kb-expr?)]
                        [kb-equal? (-> (or/c base-val? symbol? kb-expr?)
                                       (or/c base-val? symbol? kb-expr?)
                                       kb-expr?)]
@@ -227,6 +242,21 @@
 
 (define-kb-op (kb-or () (e1 e2))
   `(kb-or ,e1 ,e2))
+
+(define-kb-op (kb-and () (e1 e2))
+  `(kb-and ,e1 ,e2))
+
+(define-kb-op (kb-gte () (e1 e2))
+  `(kb-gte ,e1 ,e2))
+
+(define-kb-op (kb-lte () (e1 e2))
+  `(kb-lte ,e1 ,e2))
+
+(define-kb-op (kb-gt () (e1 e2))
+  `(kb-gt ,e1 ,e2))
+
+(define-kb-op (kb-lt () (e1 e2))
+  `(kb-lt ,e1 ,e2))
 
 (define-kb-op (kb-equal? () (e1 e2))
   `(kb-equal? ,e1 ,e2))
