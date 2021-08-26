@@ -61,6 +61,9 @@
                                        kb-expr?)]
                        [kb-not (-> (or/c boolean? symbol? kb-expr?)
                                    kb-expr?)]
+                       [kb-or (-> (or/c boolean? symbol? kb-expr?)
+                                  (or/c boolean? symbol? kb-expr?)
+                                  kb-expr?)]
                        [kb-equal? (-> (or/c base-val? symbol? kb-expr?)
                                       (or/c base-val? symbol? kb-expr?)
                                       kb-expr?)]
@@ -221,6 +224,9 @@
 
 (define-kb-op (kb-not () (e))
   `(kb-not ,e))
+
+(define-kb-op (kb-or () (e1 e2))
+  `(kb-or ,e1 ,e2))
 
 (define-kb-op (kb-equal? () (e1 e2))
   `(kb-equal? ,e1 ,e2))

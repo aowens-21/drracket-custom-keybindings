@@ -91,6 +91,9 @@
              (well-formed-kb-base-program? expr2))]
        [`(kb-not ,expr)
         (well-formed-kb-base-program? expr)]
+       [`(kb-or ,e1 ,e2)
+        (and (well-formed-kb-base-program? e1)
+             (well-formed-kb-base-program? e2))]
        [`(add ,expr1 ,expr2)
         (and (well-formed-kb-base-program? expr1)
              (well-formed-kb-base-program? expr2))]
@@ -126,6 +129,9 @@
              (well-formed-buffer-safe-kb-expr? e2))]
        [`(kb-not ,e1)
         (well-formed-buffer-safe-kb-expr? e1)]
+       [`(kb-or ,e1 ,e2)
+        (and (well-formed-buffer-safe-kb-expr? e1)
+             (well-formed-buffer-safe-kb-expr? e2))]
        [`(add ,n1 ,n2)
         (and (well-formed-buffer-safe-kb-expr? n1)
              (well-formed-buffer-safe-kb-expr? n2))]

@@ -100,6 +100,12 @@
         (define expr-val (interp e editor bindings))
         (error-unless-boolean expr-val)
         (not expr-val)]
+       [`(kb-or ,e1 ,e2)
+        (define e1-val (interp e1 editor bindings))
+        (define e2-val (interp e2 editor bindings))
+        (error-unless-boolean e1-val)
+        (error-unless-boolean e2-val)
+        (or e1-val e2-val)]
        [`(kb-equal? ,e1 ,e2)
         (equal? (interp e1 editor bindings)
                 (interp e2 editor bindings))]

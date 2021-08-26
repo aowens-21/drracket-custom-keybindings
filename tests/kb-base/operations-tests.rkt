@@ -292,3 +292,16 @@
  (lambda (result-val result-pos result-text)
    (check-equal? result-text "")
    (check-equal? result-pos 0)))
+
+(test-kb-program
+ (kb-or (kb-equal? (get-character)
+                   #\a)
+        (kb-equal? (get-character)
+                   #\b))
+ (lambda (result-val result-pos result-text)
+   (check-equal? result-val #t)
+   (check-equal? result-text "b")
+   (check-equal? result-pos 0))
+ #:setup-proc (lambda (editor)
+                (send editor insert "b")
+                (send editor set-position 0)))

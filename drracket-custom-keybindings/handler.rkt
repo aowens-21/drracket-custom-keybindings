@@ -3,6 +3,7 @@
 (provide handle)
 
 (require "../kb-base/kb-base/kb-expr.rkt"
+         "../kb-base/kb-base/helpers.rkt"
          rackunit)
 
 (define (handle expanded path the-source orig-cust)
@@ -36,7 +37,7 @@
                         (pair-last kb-info)]
                        [else
                         kb-info]))
-               (define kb-srcloc (vector-ref kb 4))
+               (define kb-srcloc (vector-ref (car (keybinding-info-kbs kb)) 4))
                (when (and (equal? (srcloc-source kb-srcloc) (syntax-source actual-origin))
                           (= (srcloc-position kb-srcloc) (syntax-position actual-origin)))
                  (extract-extension-func s))))
@@ -45,41 +46,47 @@
            (loop (car s))
            (loop (cdr s))])))
 
-(define (valid-kb-vec? kb)
-  (and (vector? kb)
-       (= (vector-length kb) 5) 
-       (string? (vector-ref kb 0))
-       (well-formed-kb-base-program? (vector-ref kb 1))
-       (string? (vector-ref kb 2))
-       (or (symbol? (vector-ref kb 3))
-           (pair? (vector-ref kb 3)))
-       (srcloc? (vector-ref kb 4))))
+(define (valid-keybinding-info? kb)
+  (cond [(keybinding-info? kb)
+         (define kbs (keybinding-info-kbs kb))
+         (andmap (λ (kb-vec)
+                   (and (vector? kb-vec)
+                        (= (vector-length kb-vec) 5) 
+                        (string? (vector-ref kb-vec 0))
+                        (well-formed-kb-base-program? (vector-ref kb-vec 1))
+                        (string? (vector-ref kb-vec 2))
+                        (or (symbol? (vector-ref kb-vec 3))
+                            (pair? (vector-ref kb-vec 3)))
+                        (srcloc? (vector-ref kb-vec 4))))
+                 kbs)]
+        [else #f]))
 
 (define (extract-kb kb-table registered-kb-names stx)
   (define kb-vec/list (syntax-property stx 'keybinding-info))
-  (define kb
+  (define keybinding-info
     (cond [(pair? kb-vec/list)
            (pair-last kb-vec/list)]
           [else
            kb-vec/list]))
-  (when (valid-kb-vec? kb)
-    (unless (set-member? registered-kb-names (vector-ref kb 2))
-      (set-add! registered-kb-names (vector-ref kb 2))
-      ;; set up the correct active ranges in the editor buffer
-      (vector-set! kb 3 (convert-range-type-to-positions (vector-ref kb 3)
-                                                         (vector-ref kb 4)))
-      (when kb
-        (if (hash-has-key? kb-table (vector-ref kb 0))
-            (hash-update! kb-table
-                          (vector-ref kb 0)
-                          (lambda (old-val)
-                            (append (if (not (list? old-val))
-                                        (list old-val)
-                                        old-val)
-                                    (list (vector-drop-right kb 1)))))
-            (hash-set! kb-table
-                       (vector-ref kb 0)
-                       (vector-drop-right kb 1)))))))
+  (when (valid-keybinding-info? keybinding-info)
+    (for ([kb (in-list (keybinding-info-kbs keybinding-info))])
+      (unless (set-member? registered-kb-names (vector-ref kb 2))
+        (set-add! registered-kb-names (vector-ref kb 2))
+        ;; set up the correct active ranges in the editor buffer
+        (vector-set! kb 3 (convert-range-type-to-positions (vector-ref kb 3)
+                                                           (vector-ref kb 4)))
+        (when kb
+          (if (hash-has-key? kb-table (vector-ref kb 0))
+              (hash-update! kb-table
+                            (vector-ref kb 0)
+                            (lambda (old-val)
+                              (append (if (not (list? old-val))
+                                          (list old-val)
+                                          old-val)
+                                      (list (vector-drop-right kb 1)))))
+              (hash-set! kb-table
+                         (vector-ref kb 0)
+                         (vector-drop-right kb 1))))))))
 
 (define/contract (convert-range-type-to-positions range-type sloc)
   (-> (or/c symbol?

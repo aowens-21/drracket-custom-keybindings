@@ -3,7 +3,17 @@
 (require (for-syntax racket/vector
                      racket/base))
 
-(provide make-kb)
+(provide make-kb
+         attach-keybindings
+         keybinding-info-kbs
+         keybinding-info?)
+
+(struct keybinding-info (kbs) #:prefab)
+
+(define (attach-keybindings stx kbs)
+  (syntax-property stx
+                   'keybinding-info
+                   (keybinding-info kbs)))
 
 (define (make-kb keystroke kb-base-program name-prefix range stx)
   (vector keystroke
