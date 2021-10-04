@@ -82,7 +82,11 @@
                        [kb-equal? (-> (or/c base-val? symbol? kb-expr?)
                                       (or/c base-val? symbol? kb-expr?)
                                       kb-expr?)]
-                       [forward-sexp-exists? (-> kb-expr?)])
+                       [forward-sexp-exists? (-> kb-expr?)]
+                       [swap (-> (or/c base-val? symbol? kb-expr?)
+                                 (or/c base-val? symbol? kb-expr?)
+                                 (or/c base-val? symbol? kb-expr?)
+                                 kb-expr?)])
          seq
          do-times
          kb-let)
@@ -263,6 +267,27 @@
 
 (define-kb-op (forward-sexp-exists?) #:safe? #t
   `(forward-sexp-exists?))
+
+(define (swap chars-to-swap
+              src-pos
+              dest-pos)
+  (seq
+   (kb-let (['src-pos src-pos]
+            ['dest-pos dest-pos]
+            ['chars-to-swap chars-to-swap]
+            ['src-text (get-text 'src-pos
+                                 (add 'src-pos
+                                      'chars-to-swap))]
+            ['dest-text (get-text 'dest-pos
+                                  (add 'dest-pos
+                                       'chars-to-swap))])
+           (set-position 'src-pos)
+           (delete 'chars-to-swap)
+           (insert 'dest-text)
+           (set-position 'dest-pos)
+           (delete 'chars-to-swap)
+           (insert 'src-text)
+           (set-position 'src-pos))))
 
 (module+ test
   (check-equal? (insert "hello")

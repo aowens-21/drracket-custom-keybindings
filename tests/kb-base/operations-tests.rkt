@@ -305,3 +305,26 @@
  #:setup-proc (lambda (editor)
                 (send editor insert "b")
                 (send editor set-position 0)))
+
+(test-kb-program
+ (swap 5
+       (get-position)
+       0)
+ (λ (result-val result-pos result-text)
+   (check-equal? result-text "Hello, World!")
+   (check-equal? result-pos 7))
+ #:setup-proc (λ (editor)
+                (send editor insert "World, Hello!")
+                (send editor set-position 7)))
+
+(test-kb-program
+ (swap 1
+       (get-position)
+       (sub (get-position)
+            1))
+ (λ (result-val result-pos result-text)
+   (check-equal? result-text "ab")
+   (check-equal? result-pos 1))
+ #:setup-proc (λ (editor)
+                (send editor insert "ba")
+                (send editor set-position 1)))
