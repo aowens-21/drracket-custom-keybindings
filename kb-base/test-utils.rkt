@@ -2,6 +2,7 @@
 
 (require racket/class
          racket/contract
+         racket/gui/base
          "kb-base/interpreter.rkt"
          "kb-base/kb-expr.rkt"
          framework)
@@ -31,8 +32,13 @@
                                       (values val pos text))]
                          #:setup-proc [setup-proc
                                        (lambda (txt) (void))])
-  (define editor (new racket:text%))
-  (setup-proc editor)
+  (define f (new frame%
+                 [label "kb-test"]
+                 [width 0]
+                 [height 0]))
+  (define t (new racket:text%))
+  (define e (new editor-canvas% [parent f] [editor t]))
+  (setup-proc t)
   (define-values (result-val result-pos result-text)
-    (get-kb-program-result editor kb-program))
+    (get-kb-program-result t kb-program))
   (test-proc result-val result-pos result-text))

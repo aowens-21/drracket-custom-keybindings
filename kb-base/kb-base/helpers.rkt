@@ -6,6 +6,7 @@
 (provide make-kb
          attach-keybindings
          keybinding-info-kbs
+         keybinding-info
          keybinding-info?)
 
 (struct keybinding-info (kbs) #:prefab)
@@ -13,7 +14,9 @@
 (define (attach-keybindings stx kbs)
   (syntax-property stx
                    'keybinding-info
-                   (keybinding-info kbs)))
+                   (cond [(list? kbs)
+                          (keybinding-info kbs)]
+                         [else (keybinding-info (list kbs))])))
 
 (define (make-kb keystroke kb-base-program name-prefix range stx)
   (vector keystroke

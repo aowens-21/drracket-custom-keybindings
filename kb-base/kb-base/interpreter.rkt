@@ -9,7 +9,10 @@
          interp)
 
 (define (run-kb-program program editor)
-  (interp program editor (make-hash)))
+  (send editor begin-edit-sequence)
+  (define result (interp program editor (make-hash)))
+  (send editor end-edit-sequence)
+  result)
 
 (define (interp expr editor bindings)
   (match expr
