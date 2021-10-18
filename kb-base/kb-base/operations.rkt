@@ -86,7 +86,11 @@
                        [swap (-> (or/c base-val? symbol? kb-expr?)
                                  (or/c base-val? symbol? kb-expr?)
                                  (or/c base-val? symbol? kb-expr?)
-                                 kb-expr?)])
+                                 kb-expr?)]
+                       [move-text (-> (or/c base-val? symbol? kb-expr?)
+                                      (or/c base-val? symbol? kb-expr?)
+                                      (or/c base-val? symbol? kb-expr?)
+                                      kb-expr?)])
          seq
          do-times
          kb-let)
@@ -288,6 +292,29 @@
            (delete 'chars-to-swap)
            (insert 'src-text)
            (set-position 'src-pos))))
+
+(define (move-text chars-to-move
+                   src-pos
+                   dest-pos)
+  (seq
+   (kb-let (['chars-to-move chars-to-move]
+            ['src-pos src-pos]
+            ['dest-pos dest-pos]
+            ['text-to-move (get-text 'src-pos
+                                     (add 'src-pos
+                                          'chars-to-move))])
+           (kb-if (kb-lt 'src-pos 'dest-pos)
+                  (seq
+                   (set-position 'dest-pos)
+                   (insert 'text-to-move)
+                   (set-position 'src-pos)
+                   (delete 'chars-to-move))
+                  (seq
+                   (set-position 'src-pos)
+                   (delete 'chars-to-move)
+                   (set-position 'dest-pos)
+                   (insert 'text-to-move))))))
+           
 
 (module+ test
   (check-equal? (insert "hello")

@@ -328,3 +328,12 @@
  #:setup-proc (λ (editor)
                 (send editor insert "ba")
                 (send editor set-position 1)))
+
+(test-kb-program
+ (move-text 6
+            4
+            0)
+ (λ (result-val result-pos result-text)
+   (check-equal? result-text "quick the lazy dog"))
+ #:setup-proc (λ (editor)
+                (send editor insert "the quick lazy dog")))
